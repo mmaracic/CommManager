@@ -189,7 +189,7 @@ public class CommManager implements Runnable {
 	            	}
             	}
             	
-            	checkRequestTimeouts();
+            	//checkRequestTimeouts();
             }
         }	
 	}
@@ -356,6 +356,7 @@ public class CommManager implements Runnable {
 		
 		if (!dealers.containsKey(addr)) {
 			dealer = context.socket(ZMQ.DEALER);
+			dealers.put(addr, dealer);
 			HashMap<Integer, HashMap<Descriptor, MessageHandler>> requests_to_handlers = new HashMap<Integer, HashMap<Descriptor, MessageHandler>>();
 			requests_to_handlers.put(request_id, reply_message_handlers);
 			dealers_message_handlers.put(dealer, requests_to_handlers);
