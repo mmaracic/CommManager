@@ -1,0 +1,18 @@
+package tutorial;
+
+option java_package = "com.wispear.comm";
+option java_outer_classname = "Messages";
+
+message ReqEntity {
+  required uint32 id = 1;
+}
+
+message Entity {
+  required uint32 id = 1;
+  required bytes name = 2;  
+}
+
+message AddEntity
+{
+  required Entity entity = 1;
+}

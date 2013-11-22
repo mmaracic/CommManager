@@ -1,4 +1,4 @@
-package com.wispear.wisespear.comm;
+package com.wispear.comm;
 import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.util.*;

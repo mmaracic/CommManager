@@ -1,4 +1,4 @@
-package com.wispear.wisespear.comm;
+package com.wispear.comm;
 
 import com.google.protobuf.GeneratedMessage;
 
