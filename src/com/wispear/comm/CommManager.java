@@ -11,6 +11,7 @@ import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 
+
 /**
  * The CommManager is a library which provides a Protocol Buffer based communication layer in several different patterns.
  * It is based on ZeroMQ, but can be changed transparently to its users.
@@ -183,9 +184,9 @@ public class CommManager implements Runnable {
 	            	{
 	            		recvAndHandlePayload(socket, peer_id, request_id, message_handlers);
 	            	}
-	            	catch (Exception ex)
+	            	catch (MessageHandlerException ex)
 	            	{
-	            		
+	            		System.out.println(ex.toString());
 	            	}
             	}
             	
@@ -194,11 +195,13 @@ public class CommManager implements Runnable {
         }	
 	}
 
-	private void recvAndHandlePayload(ZMQ.Socket socket, byte[] peer_id, int request_id, HashMap<Descriptor, MessageHandler> message_handlers)
-			throws InvalidProtocolBufferException, InvocationTargetException,
-			IllegalAccessException, ClassNotFoundException 
-	{
-		GeneratedMessage message = recv(socket);
+	private void recvAndHandlePayload(ZMQ.Socket socket, byte[] peer_id, int request_id, HashMap<Descriptor, MessageHandler> message_handlers) throws MessageHandlerException {
+		GeneratedMessage message;
+                try {
+                    message = recv(socket);
+                } catch (MessageParsingException ex) {
+                    throw new MessageHandlerException(ex.toString());
+                }
 		
 		// Find the appropriatae MessageHandler for this type
 		Descriptor message_type = message.getDescriptorForType();
@@ -215,8 +218,7 @@ public class CommManager implements Runnable {
 		}
 		else
 		{
-			// TODO: Throw proper exception
-			System.out.println("No message handler defined for this message type");
+			throw new MessageHandlerException("No message handler defined for this message type");
 		}
 	}
 	
@@ -439,8 +441,9 @@ public class CommManager implements Runnable {
 	 * @param message - Reply message
 	 * @param peer_id - id of the peer to let the router socket know where to send the message
 	 * @param request_id - id of the request we are replying to. Simply need to send it as well in order for the client to match the reply to request
+         * @throws RouterException
 	 */
-	public void reply(GeneratedMessage message, byte[] peer_id, int request_id)
+	public void reply(GeneratedMessage message, byte[] peer_id, int request_id) throws RouterException
 	{
 		if (peer_id != null)
 		{
@@ -452,8 +455,7 @@ public class CommManager implements Runnable {
 		}
 		else
 		{
-			// TODO: Throw proper exception
-			System.out.println("No peer id passed");
+			throw new RouterException("No peer id passed");
 		}
 	}
 	
@@ -487,13 +489,9 @@ public class CommManager implements Runnable {
 	/**
 	 * Runs (in a blocking manner) until receiving a message of the type the manager has subscribed to.
 	 * @return The message, whose runtime type is as it was sent on the other side
-	 * @throws InvalidProtocolBufferException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws ClassNotFoundException
+	 * @throws MessageParsingException
 	 */
-	private GeneratedMessage recv(ZMQ.Socket socket) throws InvalidProtocolBufferException, InvocationTargetException, IllegalAccessException, ClassNotFoundException
-	{
+	private GeneratedMessage recv(ZMQ.Socket socket) throws MessageParsingException {
 		// Get first part of message which contains message type
 		byte[] message_type_bytes = socket.recv();
 		String message_type = new String(message_type_bytes);
@@ -507,25 +505,21 @@ public class CommManager implements Runnable {
 	
 	
 	// Parses the serialized protobuf bytes according to the stated type
-	private GeneratedMessage parse(String message_type, byte[] message_bytes) 
-			throws ClassNotFoundException, InvocationTargetException, IllegalAccessException
-	{
-		Method m = getParserMethod(message_type);
+	private GeneratedMessage parse(String message_type, byte[] message_bytes) throws MessageParsingException {
+                Method m = getParserMethod(message_type);
+                try {
+                    // Invoke the parser via reflection
+                    return (GeneratedMessage) m.invoke(null, message_bytes);
+                } catch (ReflectiveOperationException | IllegalArgumentException | 
+                        NullPointerException | ExceptionInInitializerError ex) {
+                    throw new MessageParsingException(ex.toString());
+                }
 		
-		if (m != null)
-		{
-			// Invoke the parser via reflection
-			return (GeneratedMessage) m.invoke(null, message_bytes);
-		}
-		else
-		{
-			return null;
-		}
 	}
 	
 	// Gets the appropriate parser method for this message type
 	// Note that the method is retrieved once via reflection, and then cached
-	private Method getParserMethod(String message_type) throws ClassNotFoundException
+	private Method getParserMethod(String message_type) throws MessageParsingException
 	{
 		if (type_parsers.containsKey(message_type))
 		{
@@ -543,15 +537,11 @@ public class CommManager implements Runnable {
 				Class<?>[] parameter_types = {byte[].class};
 				parser_method = c.getMethod("parseFrom", parameter_types);
 			}
-			catch (ClassNotFoundException ex)
-			{
-				System.out.println("No such class");
-				return null;
+			catch(ClassNotFoundException | NoSuchMethodException | 
+                                LinkageError | NullPointerException | SecurityException ex) {
+				throw new MessageParsingException(ex.toString());
 			}
-			catch (NoSuchMethodException ex) { 
-				System.out.println("No such method");
-				return null;
-			}
+			
 			
 			type_parsers.put(message_type, parser_method);
 			return parser_method;
