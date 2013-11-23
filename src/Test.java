@@ -57,7 +57,11 @@ public class Test {
 									.setName(createByteString(random, 6))
 									.build();
 						}
-						service.reply(entity, peer_id, request_id);
+                                            try {
+                                                service.reply(entity, peer_id, request_id);
+                                            } catch (RouterException ex) {
+                                                System.out.println(ex.toString());
+                                            }
 					}
 				});
 		// Set handler for Add Entity message, when a client asks to register new entity
