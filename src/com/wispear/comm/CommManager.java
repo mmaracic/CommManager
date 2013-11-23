@@ -8,6 +8,7 @@ import org.zeromq.ZMQ;
 
 import com.google.protobuf.Descriptors.*;
 import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 
 
@@ -198,7 +199,7 @@ public class CommManager implements Runnable {
 		GeneratedMessage message;
                 try {
                     message = recv(socket);
-                } catch (MessageParsingException ex) {
+                } catch (InvalidProtocolBufferException | MessageParsingException ex) {
                     throw new MessageHandlerException(ex.toString());
                 }
 		
@@ -488,9 +489,10 @@ public class CommManager implements Runnable {
 	/**
 	 * Runs (in a blocking manner) until receiving a message of the type the manager has subscribed to.
 	 * @return The message, whose runtime type is as it was sent on the other side
+         * @throws InvalidProtocolBufferException
 	 * @throws MessageParsingException
 	 */
-	private GeneratedMessage recv(ZMQ.Socket socket) throws MessageParsingException {
+	private GeneratedMessage recv(ZMQ.Socket socket) throws InvalidProtocolBufferException, MessageParsingException {
 		// Get first part of message which contains message type
 		byte[] message_type_bytes = socket.recv();
 		String message_type = new String(message_type_bytes);
