@@ -463,7 +463,7 @@ public class CommManager implements Runnable {
 	 */
 	public void publish(GeneratedMessage message)
 	{
-		send(subscriber, message);
+		send(publisher, message);
 	}
 	
 	/**

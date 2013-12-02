@@ -49,6 +49,7 @@ public class Test {
 						if (entities.containsKey(req_entity_message.getId()))
 						{
 							entity = entities.get(req_entity_message.getId());
+                                                        System.out.println("Service found entity "+req_entity_message.getId());
 						}
 						else
 						{
@@ -56,6 +57,7 @@ public class Test {
 									.setId(0xFFFFFFFF)
 									.setName(createByteString(random, 6))
 									.build();
+                                                        System.out.println("Service didnt find entity "+req_entity_message.getId());
 						}
 						service.reply(entity, peer_id, request_id);
 					}
@@ -74,7 +76,7 @@ public class Test {
 						AddEntity add_entity_message = (AddEntity) message;
 						Entity entity = add_entity_message.getEntity();
 						entities.put(entity.getId(), entity);
-						System.out.println("Entity added " + entity.getId());
+						System.out.println("Service added entity " + entity.getId());
 					}
 				});
 		
@@ -95,7 +97,7 @@ public class Test {
 			ReqEntity req_entity = ReqEntity.newBuilder()
 									.setId(i)
 									.build();
-			System.out.println("Ask entity " + i);
+			System.out.println("Cient1 asking for entity " + i);
 			client1.request("tcp://localhost:5556", req_entity, Entity.getDescriptor(),
 					new MessageHandler() 
 						{
@@ -124,10 +126,11 @@ public class Test {
 											.build())
 											.build();
 			client2.request("tcp://localhost:5556", add_entity, null, null); // No need for callback, as there is no reply
+                        System.out.println("Client2 adding entity"+add_entity.getEntity().getId());
 		}
 		
 		// Close
-		Thread.sleep(20000);
+		Thread.sleep(10000);
 		clientThread1.interrupt();
 		clientThread2.interrupt();
 		serviceThread.interrupt();

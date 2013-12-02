@@ -30,7 +30,13 @@
     <artifactId>protobuf-java</artifactId>
     <version>2.5.0</version>
 </dependency>
-</dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <type>jar</type>
+    </dependency>
+  </dependencies>
 
 	<!-- If you can't find the latest snapshot -->
 	<repositories>
