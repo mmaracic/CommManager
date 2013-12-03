@@ -26,7 +26,7 @@ import static org.junit.Assert.*;
  * Service is a publisher that publishes entities to the subscribers
  * Tests check whether all the subscribers got their messages and whether they are all live (served equally often)
  * Liveness is likely to fail if threads are not synchronized; it is not a big problem
- * Publisher cant have own process thread due to lack of thread safety in zeromq socket
+ * Publisher cant have own process because it is unable to receive messages
  * We need to allow the subscribers to setup properly because publisher will drop messages it cannot deliver
  */
 public class PublisherTest

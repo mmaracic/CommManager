@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
  *
  * @author Marijo
  * Tests router dealer pattern. Service acts as router-dealer.
+ * We have two request clients who use the service node (implementing router-dealer pattern) to route their requests to the response node and to return back the responses.
  * Tests check whether all the subscribers (reqs) got their messages and whether they are all live (served equally often)
  * Liveness is likely to fail if threads are not synchronized; it is not a big problem
  */
